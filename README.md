@@ -1,14 +1,22 @@
-# A benchmark of code-context tools on your own tasks
+# context-recall: a benchmark of code-context tools on your own tasks
 
-Does a code-context tool put the rules written in your repository in front of a coding agent before it plans a change? This
-kit measures it on real past tasks of your repository: each task becomes a case with a known snapshot, the files the change
-edited and the written rules the change had to respect. Every tool (an "arm") gets the same isolated Claude Code session, the
-same prompt and the same brief template; a blinded judge then grades the brief rule by rule.
+## What it does
 
-- `METHODOLOGY.md` — the method as a spec: the question, case selection, tracing, rule families, fairness, scoring, the judge
-  and its calibration, statistics, preregistration, pitfalls.
-- `OWN_TASKS.md` — step by step: from an empty stand to numbers you can defend, on your repository.
-- `CASE_AUTHORING.md` — the prompt an agent follows to turn one past task into a case file.
+It measures whether a code-context tool puts the rules written in your repository in front of a coding agent before it
+plans a change. Your real past tasks become cases; every tool gets the same isolated Claude Code session and prompt, and a
+blinded judge grades each brief rule by rule. It also tells you whether an edit to your own docs or tools helped.
+
+## Why it matters
+
+- Without project memory, a coding agent finds about a third of the rules a change has to respect: Claude Code found 32%
+  without the project's docs, 54% with them, 70% when the right docs were read whole.
+- Almost half of those rules cannot be learned from the code, and most have no test that fails when they are broken: a
+  missed rule passes CI.
+- Smarter code search adds no rules: Serena, Trail and Graphify found fewer than Claude Code alone.
+- Catching a rule while planning costs cents; missing it costs a rework cycle, or an incident in production.
+
+The study behind this kit: [Without Project Memory, Coding Agents Find a Third of the Rules](https://articles.segmently.ai/coding-agents-project-rules).
+It was run by the authors of Segmently Modules; that tool's arm is not part of this kit. Run it on your own tasks.
 
 ## Install with one prompt
 
@@ -50,6 +58,16 @@ configuration, picking past tasks from your history, tracing them into cases wit
 - From a clone, without installing: `claude --plugin-dir <path to the clone>`.
 
 Then ask to measure how well your context tools find what an agent needs.
+
+## The method
+
+- `METHODOLOGY.md` — the method as a spec: the question, case selection, tracing, rule families, fairness, scoring, the judge
+  and its calibration, statistics, preregistration, pitfalls.
+- `OWN_TASKS.md` — step by step: from an empty stand to numbers you can defend, on your repository.
+- `CASE_AUTHORING.md` — the prompt an agent follows to turn one past task into a case file.
+
+Each task becomes a case with a known snapshot, the files the change edited and the written rules the change had to respect;
+every tool (an "arm") gets the same session, prompt and brief template.
 
 ## Quick start
 

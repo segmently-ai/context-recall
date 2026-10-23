@@ -42,6 +42,17 @@ class Marketplace(unittest.TestCase):
         self.assertIn(f"claude plugin install {plugin['name']}@{market['name']}", readme)
 
 
+class ReadmeOpening(unittest.TestCase):
+    """The README opens with what the kit does and, right after, why it matters, with a link to the study."""
+
+    def test_what_then_why(self):
+        readme = (STAND / "KIT_README.md").read_text()
+        heads = [l for l in readme.splitlines() if l.startswith("## ")]
+        self.assertEqual(heads[:2], ["## What it does", "## Why it matters"])
+        why = readme.split("## Why it matters", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("https://articles.segmently.ai/coding-agents-project-rules", why)
+
+
 class ManifestExclusion(unittest.TestCase):
     """A manifest line "!<glob>" keeps matching files out of the kit even when an earlier glob lists them: a stand-local
     file next to the public ones never leaves the repository."""
