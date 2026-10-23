@@ -23,9 +23,12 @@ check is a `reject`, or `weak` with the reason when the user wants the task anyw
    join the implementation.
 4. **Its commits can be found.** The pull request's merge or squash commit, or commits that name the task (an id, a PR
    number). Commits of the task mixed into unrelated ones, unnamed → `weak` at best.
-5. **One coherent change of hand-written code.** Not only docs, config, lockfiles, generated files, formatting, a version
-   or dependency bump, a mass rename, a merge of branches. About 30 hand-written files at most: a larger change mixes
-   several, and its truth cannot be traced reliably (keep one part, the rest goes to `dropped_items`).
+5. **One change of hand-written code, or one feature that can be split.** Not docs, config, lockfiles, generated files,
+   formatting, a version or dependency bump, a mass rename or a merge of branches only. A large feature is not rejected:
+   trace its stages as separate cases (spec, architecture, each task), or, from one large pull request, a `spec`-stage case
+   for the feature's goal plus a task case for each clear part with its own files (the rest goes to `dropped_items`).
+   Count hand-written files only; past about 30, plan the split before tracing. Reject only a change that mixes unrelated
+   tasks no commit boundary separates.
 6. **The snapshot is clean.** The parent of the first implementation commit. A long-lived branch merged weeks later: check
    that the docs the task relies on did not change on the main line meanwhile (`git log <first commit>^..<merge>^1 --
    <docs>`); a rule written there after the branch began was not there to find.
