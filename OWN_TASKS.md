@@ -61,6 +61,12 @@ Avoid tasks that:
 - restate the rule in their own text;
 - share an area and the same weeks with another task you picked.
 
+**Is a pull request or a commit usable?** Before tracing, check that its text states the goal or the symptom (not only
+what the diff did) and is the version from before the work; that it was merged and not reverted; that its commits can be
+found; that it is one coherent change of hand-written code (not docs, config, lockfiles, generated files, a bump or a mass
+rename only; about 30 files at most); and that no doc it relies on changed on the main line between the branch's start and
+its merge. The skill's `references/candidates.md` lists the git commands for each check.
+
 **Check when a rule was written.** For a candidate rule, `git blame <commit> -- <doc>` or `git log -L <a>,<b>:<doc>` shows when
 its lines appeared. The rule counts only if it was there at the snapshot (the parent of the first implementation commit).
 
