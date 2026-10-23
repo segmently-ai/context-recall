@@ -6,7 +6,7 @@ set -u
 H=${0:A:h}; source $H/lib.sh
 TID=$1; AR=$2; OUT=$B/$TID/out/$AR; T=${JUDGE_TAG:+.$JUDGE_TAG}
 # the blinding words: every adapter's ARM_<F>_BLIND (all adapters, not only this case's arms), then any MCP tool name
-WORDS=(); for _a in $H/arms/*.zsh(N); do _v=ARM_${${_a:t:r}}_BLIND; [ -n "${(P)_v:-}" ] && WORDS+=(${(P)_v}); done
+WORDS=(); for _a in $H/arms/*.zsh(N) ${OWN_ARMS:+$OWN_ARMS/*.zsh(N)}; do _v=ARM_${${_a:t:r}}_BLIND; [ -n "${(P)_v:-}" ] && WORDS+=(${(P)_v}); done
 WORDS+=('mcp__\w+')
 python3 - $H $TID $OUT "${(j:|:)WORDS}" $TASKS <<'PY'
 import json, re, sys

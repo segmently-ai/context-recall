@@ -20,7 +20,7 @@ It was run by the authors of Segmently Modules; that tool's arm is not part of t
 
 Segmently Modules itself — the project memory that reached 70% in the study — is not part of this kit either. It is a
 separate open-source plugin: install it from https://github.com/segmently-ai/segmently-modules-plugins, and add it as an arm
-of your own ("Add a tool" below) to measure it next to the others.
+of your own ("Add your own tool" below: its discovery skill is a `plugin` arm) to measure it next to the others.
 
 ## Install with one prompt
 
@@ -45,7 +45,7 @@ Run the steps in order and show me the exact output of every command:
 Setup is done. Two steps for you:
 1. Type /reload-plugins in this chat (or start Claude Code in the repository you want to measure).
 2. Then, in that repository, paste this request:
-"Use the context-recall skill to measure how well code-context tools put the needed docs, files and rules in front of a coding agent in this repository. Start where the skill starts: check that the repository has a task history, show me the tools I can compare and what each would need installed (Claude Code alone needs nothing), let me pick, then offer the free self-test. Ask me before anything that draws on my plan's limits, with a cost line."
+"Use the context-recall skill to measure how well code-context tools put the needed docs, files and rules in front of a coding agent in this repository. Start where the skill starts: check that the repository has a task history, show me the tools I can compare and what each would need installed (Claude Code alone needs nothing; my own tool, such as a discovery skill I built, can be added too), let me pick, then offer the free self-test. Ask me before anything that draws on my plan's limits, with a cost line."
 ```
 
 The kit never commits, pushes or edits your code or docs. Its workspace lives in `<your repo>/.context-recall/` and is
@@ -128,11 +128,25 @@ indexes really built. It passes when every session used its tool, saw every rule
 default (about $7 API-equivalent, drawn from your plan's limits); `--real --cases d01,d02,d03` (12 sessions, about $3) is
 the cheapest way to see each tool work before you trace your own cases. Your `stand.env`, cases and results are never touched.
 
-## Add a tool
+## Add your own tool
 
-Write `arms/<FAMILY>.zsh` (copy `arms/TRAIL.zsh`: a CLI with an index) or `arms/SERENA.zsh` (an MCP server), add its
-`integration-<FAMILY>.md` paragraph, pin its version, and add the family to `ARMS`. `OWN_TASKS.md` section 13 walks through it.
-Keep each arm's paragraph as plain as the others: it is the only text an arm gets that the others do not.
+Built something that finds context for an agent — a discovery skill, a rules plugin, an MCP server, a code-map CLI? Measure
+it next to Claude Code alone. With the plugin, say "add my own tool as an arm": the skill asks three questions (what kind,
+where it is, its name) and writes the arm into your workspace. By hand, from the kit's folder (your clone, or the installed
+plugin's `~/.claude/plugins/cache/context-recall/context-recall/<version>/`), after `workspace.py init --repo <repo>`:
+
+    python3 skills/context-recall/scripts/workspace.py add-arm --repo <repo> --name DISCOVER --kind plugin \
+      --plugin <plugin>@<marketplace> --skill <your discovery skill>          # an installed plugin with a skill
+                                                                               # (or --plugin <its checkout folder>)
+    … --name DOCS --kind mcp --command <server> [--arg <a> …]                # an MCP server
+    … --name MAPPER --kind cli --cli <command> [--index "<builds its index>"] # a command on PATH
+    python3 skills/context-recall/scripts/workspace.py arms --repo <repo> --set DISCOVER
+    ./selftest/selftest.sh --arms BARE,DISCOVER --own-arms <repo>/.context-recall/arms   # free: checks the wiring
+    ./selftest/selftest.sh --real --cases d01,d02,d03 --arms BARE,DISCOVER --own-arms …  # ~$1–3: your tool really running
+
+The arm lives in `<repo>/.context-recall/arms/` with its paragraph `integration-<NAME>.md` — the only text its sessions get
+that the others do not, so keep it as plain as the kit's own (`integration-TRAIL.md`). For a tool these three kinds do not
+cover, edit the generated adapter: `OWN_TASKS.md` section 13 and the header of `arms/BARE.zsh` list every key and hook.
 
 ## License
 

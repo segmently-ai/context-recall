@@ -10,17 +10,18 @@
 #   --real    the real claude, without steps 7–8: RUNS sessions per arm per case plus one judge call each — by default
 #             7 cases × 4 arms = 28 sessions + 28 judge calls (~$7 API-equivalent, drawn from your plan's limits);
 #             --cases d01,d02,d03: 12 sessions + 12 judge calls (~$3)
-# Options: --cases d01,d02 · --arms BARE,TRAIL · --keep (keep the temp folder) · env SELFTEST_DIR (the folder),
+# Options: --cases d01,d02 · --arms BARE,TRAIL · --own-arms <workspace>/arms (your own, from workspace.py add-arm) · --keep
+#          (keep the temp folder) · env SELFTEST_DIR (the folder),
 #          SELFTEST_DATA (reuse a data dir: skips the Trail install; the runs are always fresh), RUNS (default 1)
 # Exit 0 = every check passed.
 set -u
 S=${0:A:h}; H=${S:h}
-REAL=0; KEEP=0; CASES=(d01 d02 d02s d03 f1spec f1arch f1t1); ARMS_ST=BARE,SERENA,GRAPHIFY,TRAIL
+OWN=""; REAL=0; KEEP=0; CASES=(d01 d02 d02s d03 f1spec f1arch f1t1); ARMS_ST=BARE,SERENA,GRAPHIFY,TRAIL
 while (( $# )); do
   case $1 in
     --real) REAL=1 ;; --keep) KEEP=1 ;;
-    --cases) CASES=(${(s:,:)2}); shift ;; --arms) ARMS_ST=$2; shift ;;
-    *) sed -n '2,15p' $0; exit 2 ;;
+    --cases) CASES=(${(s:,:)2}); shift ;; --arms) ARMS_ST=$2; shift ;; --own-arms) OWN=${2:A}; shift ;;
+    *) sed -n '2,16p' $0; exit 2 ;;
   esac; shift
 done
 ST_RUNS=${RUNS:-1}
@@ -41,6 +42,9 @@ python3 $H/skills/context-recall/scripts/workspace.py init --repo $W/repo || exi
 WS=$W/repo/.context-recall
 sed -i.bak -e "s#^BENCH_DATA=.*#BENCH_DATA=$DATA#" -e "s#^ARMS=.*#ARMS=$ARMS_ST#" -e "s#^RUNS=.*#RUNS=$ST_RUNS#" $WS/stand.env && rm -f $WS/stand.env.bak
 cp $S/cases/*.case.json $WS/cases/
+if [ -n "$OWN" ]; then   # the user's own arms (workspace.py add-arm), beside the workspace as in theirs
+  mkdir -p $WS/arms && cp $OWN/*.zsh(N) $OWN/integration-*.md(N) $WS/arms/ || exit 2
+fi
 export BENCH_WORKSPACE=$WS RUN_LABEL=selftest BENCH=$W/runs   # the runs always fresh: a reused data dir shares only its tools
 (( REAL )) || export PATH=$S/bin:$PATH
 

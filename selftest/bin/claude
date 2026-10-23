@@ -48,6 +48,10 @@ if fmt == "stream-json":
         call("Bash", {"command": 'graphify query "where are the handlers"'}, "(stand-in) graph answer")
     elif "trail" in low:
         call("Bash", {"command": 'trail ask "where are the handlers"'}, "(stand-in) map answer")
+    elif m := re.search(r"the `([\w:.-]+)` skill", low):   # an added arm's plugin skill
+        call("Skill", {"skill": m.group(1)}, "(stand-in) skill report")
+    elif m := re.search(r"the `([\w.-]+)` cli", low):   # an added arm's command
+        call("Bash", {"command": f"{m.group(1)} --help"}, "(stand-in) usage")
     docs = sorted(Path("docs").glob("*.md")) + [p for p in [Path("CLAUDE.md")] if p.exists()]
     rules = []
     for d in docs:

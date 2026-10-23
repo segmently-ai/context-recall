@@ -23,7 +23,7 @@ echo "host $HOST_REPO · data $BENCH_DATA · arms ${ARM_LIST[*]}"
 
 # 2 the arm families
 for F in $(arm_families $ARM_LIST); do
-  [ -f $H/arms/$F.zsh ] || fail "no adapter arms/$F.zsh for the arms in ARMS"
+  arm_file $F || fail "no adapter arms/$F.zsh (kit or workspace) for the arms in ARMS"
   has_hook arm_setup $F && arm_setup_$F
 done
 

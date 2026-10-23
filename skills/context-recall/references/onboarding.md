@@ -29,8 +29,13 @@ BARE (Claude Code alone) is always in and is not a choice: say so on its card. R
 first number is how many of the written rules the user's Claude Code finds by itself — and adding a tool later: an arm
 added later runs on the same cases without repeating the earlier sessions (`arms.md`).
 
-Then `workspace.py init --repo <repo> --arms <the picked arms, comma-separated, without BARE>` and, after a yes to the
-self-test, `selftest.md`. Before the self-test, an arm with `install` or `needs` needs its install done: show the command,
+Always add one more card: **"Your own tool"** — "something you built that finds context for an agent: a discovery skill,
+a rules plugin, an MCP server, a code-map CLI. Three questions, then it runs next to the others." Picked → `arms.md`,
+"The user's own tool as an arm", right after `init` (`add-arm` writes into the workspace, then `arms --set` adds it).
+
+Then `workspace.py init --repo <repo> --arms <the picked shipped arms, comma-separated, without BARE>` — no `--arms` when
+only BARE and/or the user's own tool were picked (the own arm is added right after) — and, after a yes to the self-test,
+`selftest.md`. Before the self-test, an arm with `install` or `needs` needs its install done: show the command,
 and run it only on the user's yes.
 
 If the user arrives with a specific request (e.g. "compare Trail and the bare agent on our last tasks"), skip the card's

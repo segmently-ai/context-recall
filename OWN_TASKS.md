@@ -210,6 +210,12 @@ tool-used rate.
 
 ## 13. Add your own tool as an arm
 
+**The short way.** `python3 skills/context-recall/scripts/workspace.py add-arm --repo <repo> --name <NAME> --kind
+plugin|mcp|cli …` writes the adapter and its paragraph into the workspace (`<repo>/.context-recall/arms/`) for a Claude Code
+plugin with a skill (for example your own discovery skill), an MCP server, or a command on PATH; the kit itself stays
+untouched. Check it free with `selftest/selftest.sh --arms BARE,<NAME> --own-arms <repo>/.context-recall/arms`. The steps
+below are for writing an adapter by hand, for a tool those three kinds do not cover.
+
 1. Write `arms/<FAMILY>.zsh`. Start from a shipped adapter close to your tool: SERENA for an MCP server, TRAIL or GRAPHIFY for
    a CLI with an index. The header of the shipped adapters documents every key and hook (`METHODOLOGY.md`, section 7.2).
    Values are single-quoted. A sketch for a hypothetical CLI tool:

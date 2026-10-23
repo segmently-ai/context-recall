@@ -80,9 +80,11 @@ _META = re.compile(r"^ARM_([A-Z0-9]+)_(CLI|USED|BLIND|OVERLAY)='([^']*)'", re.M)
 
 
 def arms_meta():
-    """{family: {cli, used, blind, overlay}} from the adapters' declarations (arms/<FAMILY>.zsh, single-quoted values)."""
+    """{family: {cli, used, blind, overlay}} from the adapters' declarations (arms/<FAMILY>.zsh, single-quoted values): the
+    kit's, then the user's own in the workspace (workspace.py add-arm)."""
     out = {}
-    for p in sorted((STAND / "arms").glob("*.zsh")):
+    dirs = [STAND / "arms"] + ([WORKSPACE / "arms"] if (WORKSPACE / "arms").resolve() != (STAND / "arms").resolve() else [])
+    for p in [p for d in dirs for p in sorted(d.glob("*.zsh"))]:
         for fam, key, val in _META.findall(p.read_text()):
             out.setdefault(fam, {})[key.lower()] = val
     return out

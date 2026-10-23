@@ -69,14 +69,17 @@ timed() {
 }
 TIME_RE='real|maximum resident|peak memory|Elapsed \(wall|Maximum resident'
 
-for _a in $STAND/arms/*.zsh(N); do source $_a; done
+# the kit's adapters, then the user's own (workspace.py add-arm writes them into $WORKSPACE/arms/, beside their paragraphs)
+OWN_ARMS=$WORKSPACE/arms; [[ ${OWN_ARMS:A} == ${STAND:A}/arms ]] && OWN_ARMS=""
+for _a in $STAND/arms/*.zsh(N) ${OWN_ARMS:+$OWN_ARMS/*.zsh(N)}; do source $_a; done
 unset _a _l
+arm_file() { [ -f $STAND/arms/$1.zsh ] || { [ -n "$OWN_ARMS" ] && [ -f $OWN_ARMS/$1.zsh ]; }; }   # an adapter for family $1
 
 stand_ready() {   # refuse to run on a stand setup.sh has not built: every family of the arms reports ready
   local f
   command -v claude >/dev/null || { echo "no claude (Claude Code) on PATH" >&2; return 1; }
   for f in $(arm_families $ARM_LIST); do
-    [ -f $STAND/arms/$f.zsh ] || { echo "no adapter arms/$f.zsh for the arms in ARMS" >&2; return 1; }
+    arm_file $f || { echo "no adapter arms/$f.zsh (kit or workspace) for the arms in ARMS" >&2; return 1; }
     has_hook arm_ready $f && ! arm_ready_$f && { echo "stand not built for $f: run $STAND/bench.sh setup" >&2; return 1; }
   done
   return 0
