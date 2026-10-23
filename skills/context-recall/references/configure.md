@@ -2,8 +2,8 @@
 
 Edit `<repo>/.context-recall/stand.env` with the user (each key is commented there):
 
-- `ARMS` — the tools to compare, comma-separated. `BARE` (the agent alone) is the reference; keep it. Add `SERENA`,
-  `GRAPHIFY`, `TRAIL` only if `bench.sh setup` passes for them; the user's own tool: `arms.md`.
+- `ARMS` — set with `workspace.py arms --repo <repo> --set …` (the cards say what each tool takes; BARE, the reference, is
+  always kept). An arm whose `bench.sh setup` fails is left out and added later (`arms.md`); the user's own tool: `arms.md`.
 - `RUNS` (sessions per arm per case, 2 is the default and the minimum for a claim), `PAR` (sessions at once; 3 fit in 16 GB).
 - `BRIEF_MODEL`, `JUDGE_MODEL` — Claude Code aliases; the judge is calibrated later (`numbers.md`).
 - `REQUEST_FIELD` — `request_en`, or another language field the cases carry.

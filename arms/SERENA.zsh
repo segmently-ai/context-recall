@@ -5,6 +5,10 @@ ARM_SERENA_CLI='serena'
 ARM_SERENA_USED='mcp'
 ARM_SERENA_BLIND='serena'
 ARM_SERENA_OVERLAY='CLAUDE.md'
+ARM_SERENA_ABOUT='Serena: symbol tools (find symbols and their references) as an MCP server'
+ARM_SERENA_NEEDS='uv'
+ARM_SERENA_BIN='serena'
+ARM_SERENA_INSTALL='uv tool install serena-agent==$SERENA_VERSION'
 SERENA_BIN=${SERENA_BIN:-$(command -v serena)}
 export SERENA_BIN
 

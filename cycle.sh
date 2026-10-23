@@ -31,6 +31,7 @@ if [ $FROM -le 1 ]; then
   (( rc == 2 )) && { log "prep refused (see cycle.log)"; exit 2; }
 fi
 if [ $FROM -le 2 ]; then log "2 build"; $H/build.sh $TID $ACTIVE; tail -2 $B/$TID/build.log >> $R/cycle.log 2>/dev/null; fi
+REUSED=()   # sessions kept from an earlier cycle of this case (--resume): they keep a verdict that has no error
 if [ $FROM -le 3 ]; then
   log "3 briefs: ${#ALL} sessions (${ACTIVE[*]})"; n=0
   REUSED=(); for ar in $ALL; do [ -e $B/$TID/out/$ar ] && REUSED+=($ar); done
@@ -44,7 +45,10 @@ fi
 if [ $FROM -le 4 ]; then
   log "4 score + judge ($JUDGE_MODEL)"
   python3 $H/score.py $TID $ALL > $R/score.txt 2>&1
-  n=0; for ar in $ALL; do $H/judge.sh $TID $ar >> $R/judge.txt 2>&1 & n=$((n+1)); sleep 2; [ $((n % PAR)) -eq 0 ] && wait; done; wait
+  KEPT=(); for ar in $REUSED; do V=$B/$TID/out/$ar/verdict.json; [ -s $V ] && ! grep -q '"error"' $V && KEPT+=($ar); done
+  (( ${#KEPT} )) && log "   judged before, not judged again: ${KEPT[*]} (FROM=4 judges every session)"
+  n=0; for ar in $ALL; do (( ${KEPT[(Ie)$ar]} )) && continue
+    $H/judge.sh $TID $ar >> $R/judge.txt 2>&1 & n=$((n+1)); sleep 2; [ $((n % PAR)) -eq 0 ] && wait; done; wait
 fi
 for f in $FAMS; do has_hook arm_post $f && arm_post_$f; done
 log "7 collect"

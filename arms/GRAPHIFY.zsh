@@ -5,6 +5,10 @@ ARM_GRAPHIFY_CLI='graphify'
 ARM_GRAPHIFY_USED='cli'
 ARM_GRAPHIFY_BLIND='graphify|graphify-out'
 ARM_GRAPHIFY_OVERLAY='CLAUDE.md,.claude/skills/graphify'
+ARM_GRAPHIFY_ABOUT='Graphify: a code graph of the repository, with its skill and CLI'
+ARM_GRAPHIFY_NEEDS='uv'
+ARM_GRAPHIFY_BIN='graphify'
+ARM_GRAPHIFY_INSTALL='uv tool install graphifyy==$GRAPHIFY_VERSION'
 GSKILL=${GSKILL:-$(ls $(uv tool dir 2>/dev/null)/graphifyy/lib/python*/site-packages/graphify/skill.md 2>/dev/null | head -1)}
 export GSKILL
 

@@ -29,7 +29,7 @@ Set at least `HOST_REPO`. The other keys have defaults.
 |---|---|
 | `HOST_REPO` | The git repository the cases come from. Required. |
 | `BENCH_DATA` | A data directory outside the repository: snapshots, arm clones, session output. |
-| `ARMS` | Comma list of the arms to run, for example `BARE,SERENA,GRAPHIFY,TRAIL`. |
+| `ARMS` | Comma list of the arms to run, for example `BARE,SERENA,GRAPHIFY,TRAIL`. The default is `BARE` alone (no install); an arm added later runs on the same cases with `bench.sh case <id> --resume`, which runs and judges only its sessions. |
 | `RUNS` | Sessions per arm per case. Default 2. |
 | `PAR` | Sessions at once. Default 3. Lower it if memory runs short. |
 | `BRIEF_MODEL`, `JUDGE_MODEL` | Claude Code model aliases. One brief model for every arm. |

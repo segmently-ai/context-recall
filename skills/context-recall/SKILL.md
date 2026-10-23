@@ -38,7 +38,7 @@ Record each phase reached with `workspace.py phase <name> --repo <repo>`.
 | Phase | Reference | Done when |
 |---|---|---|
 | `selftest` | `references/selftest.md` | the self-test passes on this machine |
-| `configure` | `references/configure.md` (and `references/arms.md` for the user's own tool) | stand.env holds the host, the arms, the models |
+| `configure` | `references/configure.md` (and `references/arms.md` to add an arm later or the user's own tool) | stand.env holds the host, the arms, the models |
 | `candidates` | `references/candidates.md` | 10–20 past tasks picked, split into tuning and held-out |
 | `tracing` | `references/tracing.md` | every picked task is a case that `validate_case.py` passes, its key reviewed |
 | `prereg` | `references/prereg.md` | `prereg/<date>.md` written and confirmed by the user |

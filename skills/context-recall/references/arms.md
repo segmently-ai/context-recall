@@ -1,3 +1,17 @@
+# Adding an arm later
+
+The user started with fewer arms (often BARE alone) and wants another shipped tool now:
+
+1. `workspace.py arms --repo <repo> --json` — its card says what it takes on this machine; on a yes, run the install shown.
+2. `workspace.py arms --repo <repo> --set <every arm wanted besides BARE>`, then `BENCH_WORKSPACE=<ws> <kit>/bench.sh setup`.
+3. `selftest.sh --arms BARE,<FAMILY>` (free) — the tool installs, indexes, is called and scored.
+4. On the label's cases, one at a time: `BENCH_WORKSPACE=<ws> RUN_LABEL=<label> <kit>/bench.sh case <id> --clean --resume`.
+   Only the new arm's sessions run and are judged; the earlier sessions keep their briefs and verdicts. Cost line: the new
+   arm's sessions and their judge calls only.
+
+The comparison stays fair: the same snapshots, prompt, key and judge. If the judge model changed since, use a new label
+for everything instead.
+
 # The user's own tool as an arm
 
 An arm is one adapter file, `arms/<FAMILY>.zsh`, plus a paragraph `integration-<FAMILY>.md` appended to each clone's

@@ -35,7 +35,7 @@ Marketplace: segmently-ai/context-recall (this GitHub repository is its own mark
 
 Run the steps in order and show me the exact output of every command:
 1. git --version, python3 --version, zsh --version and claude --version. git, zsh and Claude Code must answer, and Python must be 3.9 or newer. On macOS, if git or python3 asks for the command line developer tools, run xcode-select --install, ask me to finish the installer it opens, then run all four again. On Linux, if zsh is missing, tell me the package manager command that installs it on this system and stop there. If Python is still missing or older than 3.9, tell me how to get Python 3.9 or newer on this operating system and stop there.
-2. node --version and uv --version. These are optional: the kit's setup uses Node with npm for the Trail arm and uv for the Graphify and Serena arms, and runs without them with fewer arms. Only report which are present; install nothing.
+2. node --version and uv --version. These are optional: the first measurement is Claude Code alone and needs neither. The extra tools to compare come later and only on my choice (Node with npm for Trail, uv for Graphify and Serena). Only report which are present; install nothing.
 3. claude plugin marketplace add segmently-ai/context-recall --scope user
    claude plugin install context-recall@context-recall --scope user
    If the marketplace is already there, run claude plugin marketplace update context-recall and then claude plugin update context-recall@context-recall --scope user.
@@ -45,7 +45,7 @@ Run the steps in order and show me the exact output of every command:
 Setup is done. Two steps for you:
 1. Type /reload-plugins in this chat (or start Claude Code in the repository you want to measure).
 2. Then, in that repository, paste this request:
-"Use the context-recall skill to measure how well code-context tools put the needed docs, files and rules in front of a coding agent in this repository. Start where the skill starts: check that the repository has a task history, then offer the free self-test. Ask me before anything that draws on my plan's limits, with a cost line."
+"Use the context-recall skill to measure how well code-context tools put the needed docs, files and rules in front of a coding agent in this repository. Start where the skill starts: check that the repository has a task history, show me the tools I can compare and what each would need installed (Claude Code alone needs nothing), let me pick, then offer the free self-test. Ask me before anything that draws on my plan's limits, with a cost line."
 ```
 
 The kit never commits, pushes or edits your code or docs. Its workspace lives in `<your repo>/.context-recall/` and is
@@ -75,14 +75,16 @@ every tool (an "arm") gets the same session, prompt and brief template.
 
 ## Quick start
 
-    ./selftest/selftest.sh              # first: the whole flow on a synthetic repository, no model calls, ~2 min
-    cp stand.env.example stand.env      # set HOST_REPO; the other keys have defaults
+    ./selftest/selftest.sh --arms BARE  # first: the whole flow on a synthetic repository, no model calls, ~2 min
+    cp stand.env.example stand.env      # set HOST_REPO; ARMS=BARE (Claude Code alone) until you add a tool
     ./bench.sh setup                    # installs or checks the arms' tools against their pins
     python3 validate_case.py cases/c01-<slug>.case.json
     ./bench.sh case c01 --clean         # one case end to end; results/c01/summary.md
     python3 stats.py --ref BARE c01 c02 …
 
-Requirements: Claude Code (logged in), Python 3.9+, zsh, git; Node with npm for TRAIL; uv for GRAPHIFY and SERENA.
+Requirements: Claude Code (logged in), Python 3.9+, zsh, git. Only for the arms you add: Node with npm for TRAIL; uv for
+GRAPHIFY and SERENA. Start with `ARMS=BARE` — how many written rules Claude Code finds alone — and add a tool later: the
+same cases with `bench.sh case <id> --resume` run and judge only the new arm's sessions.
 
 ## What a case run does
 

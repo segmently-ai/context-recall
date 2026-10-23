@@ -5,6 +5,10 @@ ARM_TRAIL_CLI='trail'
 ARM_TRAIL_USED='cli'
 ARM_TRAIL_BLIND='trail|graft'
 ARM_TRAIL_OVERLAY='CLAUDE.md'
+ARM_TRAIL_ABOUT='Trail: a code map of the repository, with its CLI'
+ARM_TRAIL_NEEDS='npm'
+ARM_TRAIL_BIN=''
+ARM_TRAIL_INSTALL='bench.sh setup installs it into the data dir from the kit lockfile'
 TRAIL_BIN=$BENCH_DATA/tools/trail/node_modules/.bin
 export TRAIL_BIN
 
