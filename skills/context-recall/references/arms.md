@@ -53,7 +53,10 @@ python3 … add-arm --repo <repo> --name MAPPER --kind cli --cli <command> [--in
 ```
 
 It refuses a name already taken, a plugin folder without `plugin.json`, a skill the plugin lacks, an MCP command that is not
-found (a CLI's command is checked by `bench.sh setup`). `--about "<one line>"` sets the text of the arm's card only. `--replace` rewrites the user's own arm of that
+found (a CLI's command is checked by `bench.sh setup`). `--prep "<command>"` runs in each case's copy of the repository before the arm's sessions (`$HOST_REPO` is the user's
+repository): for a tool that needs its own config, which the snapshots of older tasks predate — e.g.
+`--prep 'git -C $HOST_REPO archive HEAD .mytool | tar -x'`. It may add the tool's config only, never docs or rules: those
+must stay as they were at the snapshot, the same for every arm. `--about "<one line>"` sets the text of the arm's card only. `--replace` rewrites the user's own arm of that
 name — after a plugin update (its install folder carries the version), run the same command with `--replace`, and say
 that a new version is a new arm: compare it under a new label.
 
@@ -88,7 +91,8 @@ my marketplace `acme`; does it beat plain Claude Code?"
 
 ```
 python3 <kit>/skills/context-recall/scripts/workspace.py add-arm --repo ~/src/shop --name DISCOVER --kind plugin \
-  --plugin acme-context@acme --skill discover --cli acme
+  --plugin acme-context@acme --skill discover --cli acme \
+  --prep 'git -C $HOST_REPO archive HEAD .acme | tar -x'     # only if older snapshots lack the tool's config
 python3 <kit>/skills/context-recall/scripts/workspace.py arms --repo ~/src/shop --set DISCOVER
 <kit>/selftest/selftest.sh --arms BARE,DISCOVER --own-arms ~/src/shop/.context-recall/arms
 ```

@@ -46,6 +46,7 @@ class OwnArm(unittest.TestCase):
         self.assertEqual(p.returncode, 0, p.stderr)
         a = (self.ws / "arms" / "DISCOVER.zsh").read_text()
         self.assertIn("ARM_DISCOVER_USED='skill'", a)
+        self.assertIn(f"ARM_DISCOVER_ALLOW='{self.plugin.resolve()}'", a)   # the audit lets it read its own folder
         self.assertIn("--plugin-dir", a)
         self.assertTrue((self.ws / "arms" / "integration-DISCOVER.md").read_text().strip())
         self.assertIn("arms --repo", p.stdout)   # the next step is printed
@@ -102,6 +103,26 @@ class OwnArm(unittest.TestCase):
         s = json.loads((briefs / "DISCOVER-1.score.json").read_text())
         self.assertTrue(s["tool_used"])
         self.assertTrue((briefs / "DISCOVER-1.verdict.json").exists())
+
+    def test_prep_runs_in_the_clone(self):   # old snapshots may lack what the tool needs (its config): the user adds it
+        self.add("--name", "DISCOVER", "--kind", "plugin", "--plugin", self.plugin, "--skill", "discover",
+                 "--prep", "mkdir -p .tool && echo on > .tool/config")
+        shutil.copy(CASE, self.ws / "cases")
+        run(["python3", WS, "arms", "--repo", self.repo, "--set", "DISCOVER"])
+        env = {"BENCH_WORKSPACE": str(self.ws), "BENCH_DATA": str(self.t / "data"), "RUNS": "1"}
+        p = run([STAND / "bench.sh", "case", "d01"], env=env)
+        self.assertEqual(p.returncode, 0, p.stdout[-600:] + p.stderr[-600:])
+        self.assertEqual((self.t / "data" / "runs" / "d01" / "DISCOVER" / ".tool" / "config").read_text(), "on\n")
+        self.assertFalse((self.t / "data" / "runs" / "d01" / "BARE" / ".tool").exists())
+        self.assertIn(".tool", (self.ws / "arms" / "DISCOVER.zsh").read_text())
+
+    def test_rescoring_without_the_clone_is_refused(self):   # --clean removed it: the leak audit would compare with nothing
+        shutil.copy(CASE, self.ws / "cases")
+        env = {"BENCH_WORKSPACE": str(self.ws), "BENCH_DATA": str(self.t / "data"), "RUNS": "1"}
+        self.assertEqual(run([STAND / "bench.sh", "case", "d01", "--clean"], env=env).returncode, 0)
+        p = run(["python3", STAND / "score.py", "d01", "BARE-1"], env=env)
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("prep.sh", p.stderr)
 
     def test_mcp_arm_runs_and_counts_as_used(self):
         self.add("--name", "DOCS", "--kind", "mcp", "--command", "/bin/cat")

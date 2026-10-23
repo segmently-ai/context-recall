@@ -44,3 +44,7 @@ class Outside(unittest.TestCase):
         self.assertEqual(sc.outside_paths(calls, Path("/nowhere/session")), set())
         self.assertEqual(sc.outside_paths([("Read", {"file_path": "/var/lib/other/secret.md"}, "")],
                                           Path("/nowhere/session")), {"/var/lib/other/secret.md"})
+        # an arm's own folders (ARM_<F>_ALLOW: a plugin arm reads its skill's references from the plugin's folder)
+        ref = [("Read", {"file_path": "/var/lib/plugins/disc/1.0/skills/d/references/x.md"}, "")]
+        self.assertEqual(sc.outside_paths(ref, Path("/nowhere/session"), ("/var/lib/plugins/disc/1.0",)), set())
+        self.assertEqual(sc.outside_paths(ref, Path("/nowhere/session")), {ref[0][1]["file_path"]})

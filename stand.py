@@ -76,7 +76,7 @@ def family(arm):
     return arm.split("-")[0]
 
 
-_META = re.compile(r"^ARM_([A-Z0-9]+)_(CLI|USED|BLIND|OVERLAY)='([^']*)'", re.M)
+_META = re.compile(r"^ARM_([A-Z0-9]+)_(CLI|USED|BLIND|OVERLAY|ALLOW)='([^']*)'", re.M)
 
 
 def arms_meta():

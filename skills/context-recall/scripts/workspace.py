@@ -121,7 +121,8 @@ def add_arm(w, a):
         sentence = f"the `{a.skill}` skill (the `{plugin}` plugin) along with your other tools"
         used, cli, blind = ("cli,skill" if a.cli else "skill"), a.cli or "", words(plugin, a.skill, a.cli)
         about = a.about or f"Your own tool: the {a.skill} skill of the {plugin} plugin"
-        body = (f"{name}_PLUGIN_DIR={q(pdir)}\n"
+        body = (f"{pre}ALLOW={q(pdir)}   # its sessions read the skill's own files there: not a path outside for the audit\n"
+                f"{name}_PLUGIN_DIR={q(pdir)}\n"
                 f"arm_setup_{name}() {{ [ -f ${name}_PLUGIN_DIR/.claude-plugin/plugin.json ] || fail \"the plugin of {name} "
                 f"is gone: ${name}_PLUGIN_DIR\"; }}\n"
                 f"arm_manifest_{name}() {{ python3 -c 'import json,sys; v=json.load(open(sys.argv[1])).get(\"version\"); "
@@ -160,11 +161,15 @@ def add_arm(w, a):
         para = (f"## {a.cli}\n\nThe `{a.cli}` command is on PATH; `{a.cli} --help` lists its verbs."
                 + (" Its index of this repository is built.\n" if a.index else "\n"))
         binary, install = a.cli, f"put {a.cli} on PATH"
+    prep = (f"{name}_PREP={q(a.prep)}   # run in the arm's clone before its sessions (e.g. the tool's config an old snapshot lacks)\n"
+            f"arm_prep_{name}() {{\n  cat $OWN_ARMS/integration-{name}.md >> $1/CLAUDE.md\n"
+            f"  (cd $1 && HOST_REPO=$HOST_REPO eval \"${name}_PREP\") || {{ echo \"{name}: its --prep failed in $1\" >&2; return 1; }}\n}}\n"
+            if a.prep else f"arm_prep_{name}() {{ cat $OWN_ARMS/integration-{name}.md >> $1/CLAUDE.md; }}\n")
     adapter = (f"# {name}: the user's own tool ({a.kind}), written by workspace.py add-arm — edit freely; the kit's arms/BARE.zsh\n"
                f"# lists every key and hook.\n"
                f"{pre}TOOL={q(sentence)}\n{pre}CLI={q(cli)}\n{pre}USED={q(used)}\n{pre}BLIND={q(blind)}\n"
                f"{pre}OVERLAY='CLAUDE.md'\n{pre}ABOUT={q(about)}\n{pre}NEEDS=''\n{pre}BIN={q(binary)}\n{pre}INSTALL={q(install)}\n"
-               f"arm_prep_{name}() {{ cat $OWN_ARMS/integration-{name}.md >> $1/CLAUDE.md; }}\n" + body)
+               + prep + body)
     (w / "arms").mkdir(exist_ok=True)
     (w / "arms" / f"{name}.zsh").write_text(adapter)
     (w / "arms" / f"integration-{name}.md").write_text(para)
@@ -242,6 +247,7 @@ def main():
     g.add_argument("--command", help="mcp: the server's executable")
     g.add_argument("--arg", action="append", help="mcp: one argument of the server, repeatable; {repo} = the clone")
     g.add_argument("--index", help="cli: a command that builds the tool's index, run in the arm's clone")
+    g.add_argument("--prep", help="a command run in the arm's clone before its sessions ($HOST_REPO = your repository)")
     g.add_argument("--about", help="one line for the arm's card")
     g.add_argument("--replace", action="store_true", help="rewrite your own arm of that name (a new plugin version)")
     a = ap.parse_args()

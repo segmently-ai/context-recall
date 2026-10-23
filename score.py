@@ -199,16 +199,19 @@ def used(arm, calls, n_by_tool):
                 or ("skill" in kinds and any(n == "Skill" for n, _, _ in calls)))
 
 
-def outside_paths(calls, session_dir):
+def outside_paths(calls, session_dir, allow=()):
     """The absolute paths a session's tool calls touched outside where it may (ALLOWED_PREFIXES, the temp dirs, its own
-    session dir — Claude Code saves a large tool output under <session>/tool-results/ — and ~/.local/bin)."""
+    session dir — Claude Code saves a large tool output under <session>/tool-results/ —, ~/.local/bin, and the arm's own
+    folders `allow`: ARM_<F>_ALLOW, e.g. a plugin arm's plugin folder, where its skill keeps its references)."""
     outside = set()
+    ok = ALLOWED_PREFIXES + ("/tmp/", "/private/tmp/", str(session_dir) + "/", str(Path.home() / ".local/bin")) \
+        + tuple(a.rstrip("/") + "/" for a in allow if a)
     for name, inp, _ in calls:
         for v in (inp.get("file_path"), inp.get("path"), inp.get("command")):
             for p in re.findall(r"(/(?:Users|home|private|tmp|var)/[^\s'\"`)]+)", v or ""):
                 p = re.sub(r"/{2,}", "/", p)   # a TMPDIR ending in "/" gives the prompt's paths a "//"
-                if not p.startswith(ALLOWED_PREFIXES + ("/tmp/", "/private/tmp/", str(session_dir) + "/",
-                                                         str(Path.home() / ".local/bin"))):
+                bare = p.rstrip(";,&|").rstrip("/") + "/"   # a path a shell command ends with "…;" or names as a folder
+                if not bare.startswith(ok):
                     outside.add(p[:120])
     return outside
 
@@ -217,6 +220,8 @@ def score(tid, arm_run):
     out = BENCH / tid / "out" / arm_run
     arm = arm_run.rsplit("-", 1)[0]
     snap = BENCH / tid / arm
+    if not snap.is_dir():   # removed by --clean: the leak audit and the paths would compare the session with nothing
+        sys.exit(f"score: no clone {snap} (CLEAN removed it): rebuild it first with prep.sh {tid} <snapshot> {arm}")
     truth = json.loads((stand.TASKS / f"{tid}.truth.json").read_text())
     stream = list(events(out / "stream.jsonl"))
     init = next((e for e in stream if e.get("subtype") == "init"), {})
@@ -264,7 +269,7 @@ def score(tid, arm_run):
     # audit
     raw = (main_tr.read_text() if main_tr.exists() else "") + "".join(x.read_text() for x in subs)
     flags = [f"leak marker: {mk}" for mk in markers(tid) if mk in raw]
-    outside = outside_paths(calls, proj / str(sid))
+    outside = outside_paths(calls, proj / str(sid), (META.get(stand.family(arm)) or {}).get("allow", "").split(","))
     if outside:
         flags.append(f"paths outside: {sorted(outside)[:6]}")
     tool_used = used(arm, calls, n_by_tool)
