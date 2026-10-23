@@ -1,0 +1,9 @@
+diff --git a/docs/reservations.md b/docs/reservations.md
+index 053f70c..5b54aae 100644
+--- a/docs/reservations.md
++++ b/docs/reservations.md
+@@ -8,3 +8,4 @@ A reservation books one piece of equipment for a time slot. The code lives in `s
+ - Never compare times as local `Date` objects; every time is a UTC ISO string and is compared with `toMillis()`.
+ - Never change a stored reservation in place; every change goes through `ReservationService`, which checks overlaps.
+ - A cancelled reservation is never deleted: set `status = "cancelled"` so the audit trail stays complete.
++- A cancelled booking cannot be extended: extend it only while its status is "active".

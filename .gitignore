@@ -1,0 +1,4 @@
+stand.env
+__pycache__/
+*.pyc
+tasks/

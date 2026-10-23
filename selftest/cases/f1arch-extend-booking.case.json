@@ -1,0 +1,142 @@
+{
+ "verdict": "good",
+ "snapshot": "d01-before",
+ "strip": [
+  "tasks/d01.md",
+  "specs/001-extend-booking"
+ ],
+ "implementation_commits": [
+  {
+   "sha": "d01",
+   "date": "2026-01-02",
+   "subject": "Members can extend a booking",
+   "what": "ReservationService.extend with the overlap check and an audit entry; the extendReservation handler; a test"
+  }
+ ],
+ "undocumented_rules": [
+  {
+   "rule": "A cancelled booking cannot be extended",
+   "where_in_code": "src/reservations/service.js extend(): status check",
+   "evidence": "d01"
+  }
+ ],
+ "dropped_items": [],
+ "group": "001-extend-booking",
+ "request_en": "Let a member extend their own booking to a later end time.",
+ "id": "f1arch-extend-booking",
+ "stage": "architecture",
+ "area": "reservations",
+ "verdict_reason": "Synthetic self-test case: the architecture stage of feature 001; the spec is its input.",
+ "inputs": [
+  {
+   "label": "Spec",
+   "original": "# Feature Specification: Extend a booking\n\n**Input**: User description: \"Let a member extend their own booking to a later end time.\"\n\n## What members need\n\nA member whose experiment runs over makes their booking longer instead of cancelling and booking again. The extension\nstarts from the booking's current end and may reach the start of the next booking of the same equipment, never beyond.\nAn admin may extend any booking. Every extension is part of the lab's safety log.",
+   "text": "# Feature Specification: Extend a booking\n\n**Input**: User description: \"Let a member extend their own booking to a later end time.\"\n\n## What members need\n\nA member whose experiment runs over makes their booking longer instead of cancelling and booking again. The extension\nstarts from the booking's current end and may reach the start of the next booking of the same equipment, never beyond.\nAn admin may extend any booking. Every extension is part of the lab's safety log."
+  }
+ ],
+ "given_rules": [
+  {
+   "rule": "Only the handler checks permissions: a member may change only their own reservations; an admin may change any",
+   "source": "docs/api.md:9",
+   "why": "the spec already says an admin may extend any booking"
+  }
+ ],
+ "truth": {
+  "areas_modify": [
+   "reservations",
+   "api"
+  ],
+  "areas_reference": [
+   "audit"
+  ],
+  "docs_must_read": [
+   {
+    "doc": "docs/reservations.md",
+    "why": "the overlap rule and that every change goes through ReservationService"
+   },
+   {
+    "doc": "docs/api.md",
+    "why": "input parsing, error bodies and the permission check of a new handler"
+   },
+   {
+    "doc": "docs/audit.md",
+    "why": "a state change records an audit entry after it is stored"
+   }
+  ],
+  "files_edit": [
+   {
+    "path": "src/reservations/service.js",
+    "symbol": "ReservationService.extend"
+   },
+   {
+    "path": "src/api/handlers.js",
+    "symbol": "extendReservation"
+   },
+   {
+    "path": "tests/reservations.test.js",
+    "symbol": "a booking extends up to the next one"
+   }
+  ],
+  "files_read": [
+   {
+    "path": "src/reservations/reservation.js",
+    "why": "overlaps() and toMillis()"
+   },
+   {
+    "path": "src/api/schema.js",
+    "why": "parse()"
+   },
+   {
+    "path": "src/audit/audit.js",
+    "why": "audit.record()"
+   }
+  ]
+ },
+ "must_know_rules": [
+  {
+   "rule": "A slot is end-exclusive [start, end); slots overlap only when a.start < b.end and b.start < a.end",
+   "source": "docs/reservations.md:7",
+   "why": "the longer slot must be checked against the equipment's other bookings, and a booking may grow up to the next one's start",
+   "evidence": "tests/reservations.test.js in d01 extends to exactly the next start"
+  },
+  {
+   "rule": "Never change a stored reservation in place; every change goes through ReservationService, which checks overlaps",
+   "source": "docs/reservations.md:9",
+   "why": "the handler must not set the end itself",
+   "evidence": "d01 adds ReservationService.extend"
+  },
+  {
+   "rule": "Every state change calls audit.record after the change is stored, never before",
+   "source": "docs/audit.md:7",
+   "why": "an extension is a state change",
+   "evidence": "d01 records an extend entry"
+  },
+  {
+   "rule": "Every handler parses its input with parse(); never read req.body fields directly",
+   "source": "docs/api.md:7",
+   "why": "the new handler takes an id and an end time",
+   "evidence": null
+  },
+  {
+   "rule": "A handler never throws: it returns { status, body }, and an error body is { error: <code> } with a code from ERRORS",
+   "source": "docs/api.md:8",
+   "why": "the design maps the service's results to error codes",
+   "evidence": null
+  }
+ ],
+ "correct_approach": "An extend step in ReservationService (overlap check, audit after the store) and a handler that parses its input, checks the owner or an admin and returns error codes.",
+ "wrong_approaches": [
+  {
+   "approach": "Let the handler write the new end time",
+   "breaks": "docs/reservations.md:9"
+  }
+ ],
+ "grading": {
+  "stage1": [
+   "docs/reservations.md:9",
+   "docs/api.md:8"
+  ],
+  "stage2": []
+ },
+ "notes": "Self-test staged case (architecture stage)."
+}

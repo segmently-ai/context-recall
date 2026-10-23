@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+"""A stand-in for Claude Code in the self-test: no model, no network, deterministic.
+
+- `claude --version` prints a version line.
+- A brief session (`-p <prompt> --output-format stream-json`, run in an arm's clone): calls the arm's tool once (the arm is
+  read from the prompt's tool sentence: an MCP call for Serena or any other MCP server the sentence names ("the `<name>` MCP
+  server"), a CLI call for Graphify or Trail), reads every doc under
+  docs/ and CLAUDE.md, writes a brief that lists each rule line of the docs with its doc:line and the source files that
+  share words with the request, and prints the session as stream-json events.
+- A judge call (`--output-format json`): grades each must-know rule of the judge prompt: provided when the brief cites one
+  of the rule's doc:line sources, partial when it names the doc only, else absent.
+"""
+import json
+import re
+import sys
+from pathlib import Path
+
+args = sys.argv[1:]
+if args[:1] == ["--version"]:
+    print("0.0.0 (stand-in)")
+    sys.exit(0)
+prompt = args[args.index("-p") + 1] if "-p" in args else ""
+fmt = args[args.index("--output-format") + 1] if "--output-format" in args else "text"
+
+
+def emit(e):
+    print(json.dumps(e))
+
+
+if fmt == "stream-json":
+    out = re.search(r"(/\S+/brief\.md)", prompt).group(1)
+    request = prompt.split("\n\n")[0].lower()
+    events, uid = [], 0
+
+    def call(name, inp, result):
+        global uid
+        uid += 1
+        events.append({"type": "assistant", "message": {"content": [{"type": "tool_use", "id": f"t{uid}", "name": name, "input": inp}]}})
+        events.append({"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": f"t{uid}", "content": result}]}})
+
+    low = prompt.split("Explore this change with", 1)[-1][:200].lower()   # the tool sentence, not the request
+    mcp = re.search(r"the `([\w-]+)` mcp server", low)
+    if mcp and mcp.group(1) != "serena":   # an added arm's MCP server: the tool sentence names it
+        call(f"mcp__{mcp.group(1)}__search", {"query": "booking rules"}, "(stand-in) [1] Rules — docs")
+    elif "serena" in low:
+        call("mcp__serena__get_symbols_overview", {"relative_path": "src"}, "(stand-in) symbols of src/")
+    elif "graphify" in low:
+        call("Bash", {"command": 'graphify query "where are the handlers"'}, "(stand-in) graph answer")
+    elif "trail" in low:
+        call("Bash", {"command": 'trail ask "where are the handlers"'}, "(stand-in) map answer")
+    docs = sorted(Path("docs").glob("*.md")) + [p for p in [Path("CLAUDE.md")] if p.exists()]
+    rules = []
+    for d in docs:
+        text = d.read_text()
+        call("Read", {"file_path": str(Path.cwd() / d)}, text)
+        rules += [(f"{d}:{i}", l[2:].strip()) for i, l in enumerate(text.split("\n"), 1) if l.startswith("- ")]
+    words = {w for w in re.findall(r"[a-z]{5,}", request)}
+    files = []
+    for f in sorted(Path("src").rglob("*.*")):
+        body = f.read_text(errors="replace").lower()
+        if sum(w in body for w in words) >= 2:
+            files.append(str(f))
+    brief = "# Brief: stand-in\n\n## 1. Files to change\n" + "".join(f"- `{f}` — may change\n" for f in files)
+    brief += "\n## 2. Files to read\n\n## 3. Rules and constraints\n" + "".join(f"- {t} — source: `{s}` — listed\n" for s, t in rules)
+    brief += "\n## 4. Tests\n\n## 5. Docs to update\n\n## 6. Risks and open questions\n- none (stand-in)\n"
+    Path(out).write_text(brief)
+    call("Write", {"file_path": out, "content": "(brief)"}, "written")
+    emit({"type": "system", "subtype": "init", "session_id": "standin-session"})
+    for e in events:
+        emit(e)
+    emit({"type": "result", "subtype": "success", "session_id": "standin-session", "total_cost_usd": 0.0,
+          "duration_ms": 1000, "num_turns": uid, "usage": {}, "modelUsage": {"stand-in": {}}})
+elif fmt == "json":
+    key = prompt.split("## The must-know rules", 1)[1].split("## The brief", 1)[0]
+    brief = prompt.split("## The brief", 1)[1].split("## What to return", 1)[0]
+    must = []
+    for m in re.finditer(r"^- ([FU]\d+): (.*)$", key, re.M):
+        cites = re.findall(r"`([^`]+?):(\d+)`", m.group(0))
+        if not cites:   # a rule no doc held at the snapshot: provided when a brief line states it and cites a doc
+            words = m.group(2).split(" — source:")[0].strip().lower()[:40]
+            v = "provided" if any(words in l.lower() and re.search(r"`[^`]+:\d+`", l) for l in brief.splitlines()) else "absent"
+        elif any(f"{d}:{n}" in brief for d, n in cites):
+            v = "provided"
+        elif any(d in brief for d, _ in cites):
+            v = "partial"
+        else:
+            v = "absent"
+        must.append({"id": m.group(1), "evidence": "stand-in", "verdict": v, "why": "doc:line match"})
+    verdict = {"must_know": must, "extra_rules": [], "unsupported": []}
+    print(json.dumps({"type": "result", "result": json.dumps(verdict), "total_cost_usd": 0.0, "modelUsage": {"stand-in": {}}}))
+else:
+    print("stand-in: unsupported call", file=sys.stderr)
+    sys.exit(2)

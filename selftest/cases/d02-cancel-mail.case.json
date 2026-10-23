@@ -1,0 +1,129 @@
+{
+ "id": "d02-cancel-mail",
+ "verdict": "good",
+ "verdict_reason": "Synthetic self-test case: one implementation commit (tag d02); the repository holds a tempting direct-send function the rules forbid in a handler.",
+ "area": "mailer",
+ "snapshot": "d02-before",
+ "strip": [
+  "tasks/d02.md"
+ ],
+ "implementation_commits": [
+  {
+   "sha": "d02",
+   "date": "2026-01-04",
+   "subject": "Mail the member when the lab cancels their booking",
+   "what": "a reservationCancelledByAdmin template; cancelReservation queues it when someone else cancels; a test"
+  }
+ ],
+ "truth": {
+  "areas_modify": [
+   "api",
+   "mailer"
+  ],
+  "areas_reference": [
+   "reservations"
+  ],
+  "docs_must_read": [
+   {
+    "doc": "docs/mailer.md",
+    "why": "mail is queued, never sent in a handler, and every mail is a template"
+   },
+   {
+    "doc": "docs/api.md",
+    "why": "who may cancel whose booking"
+   },
+   {
+    "doc": "docs/reservations.md",
+    "why": "a cancelled booking is never deleted"
+   }
+  ],
+  "files_edit": [
+   {
+    "path": "src/api/handlers.js",
+    "symbol": "cancelReservation"
+   },
+   {
+    "path": "src/mailer/templates.js",
+    "symbol": "TEMPLATES.reservationCancelledByAdmin"
+   },
+   {
+    "path": "tests/api.test.js",
+    "symbol": "an admin's cancel queues a mail to the member"
+   }
+  ],
+  "files_read": [
+   {
+    "path": "src/mailer/queue.js",
+    "why": "mailQueue.push() and the worker-only sendNow()"
+   },
+   {
+    "path": "src/reservations/service.js",
+    "why": "cancel()"
+   }
+  ]
+ },
+ "must_know_rules": [
+  {
+   "rule": "Never send mail inside a request handler or a service call; push a job with mailQueue.push",
+   "source": "docs/mailer.md:7",
+   "why": "the mail is triggered by the cancel handler, and sendNow() is right there in the mailer",
+   "evidence": "d02 pushes a job"
+  },
+  {
+   "rule": "Every kind of mail is a template in src/mailer/templates.js; never build mail text inline",
+   "source": "docs/mailer.md:8",
+   "why": "this is a new kind of mail",
+   "evidence": "d02 adds a template"
+  },
+  {
+   "rule": "A cancelled reservation is never deleted: set status = cancelled",
+   "source": "docs/reservations.md:10",
+   "why": "the mail needs the booking's data after the cancel, and the audit trail must stay complete",
+   "evidence": null
+  },
+  {
+   "rule": "Only the handler checks permissions: a member may change only their own reservations; an admin may change any",
+   "source": "docs/api.md:9",
+   "why": "the mail goes out when an admin cancels someone else's booking",
+   "evidence": null
+  }
+ ],
+ "undocumented_rules": [
+  {
+   "rule": "A member's mail address is derived from the member id",
+   "where_in_code": "src/api/handlers.js memberEmail()",
+   "evidence": "d02"
+  }
+ ],
+ "correct_approach": "Add a reservationCancelledByAdmin template to TEMPLATES. In cancelReservation, after service.cancel succeeds and when the actor is not the booking's member, push a job with mailQueue.push(template, the member's address, { equipment, start }). Add a test that an admin's cancel queues the mail.",
+ "wrong_approaches": [
+  {
+   "approach": "Call sendNow() from the handler",
+   "breaks": "docs/mailer.md:7"
+  },
+  {
+   "approach": "Build the mail text inline in the handler",
+   "breaks": "docs/mailer.md:8"
+  },
+  {
+   "approach": "Delete the booking after cancelling it",
+   "breaks": "docs/reservations.md:10"
+  }
+ ],
+ "grading": {
+  "stage1": [
+   "src/api/handlers.js",
+   "src/mailer/templates.js",
+   "docs/mailer.md:7",
+   "docs/mailer.md:8",
+   "docs/reservations.md:10",
+   "docs/api.md:9"
+  ],
+  "stage2": [
+   "a plan that calls sendNow() in the handler is flagged against docs/mailer.md:7"
+  ]
+ },
+ "dropped_items": [],
+ "request_en": "When the lab staff cancel someone's booking, the member only finds out when they show up at the bench. Send the member an email when an admin cancels their booking.",
+ "notes": "Self-test case. The snapshot and implementation are tags of the demo repository built by selftest/make_demo_repo.sh."
+}

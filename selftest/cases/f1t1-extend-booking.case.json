@@ -1,0 +1,134 @@
+{
+ "verdict": "good",
+ "snapshot": "d01-before",
+ "strip": [
+  "tasks/d01.md",
+  "specs/001-extend-booking"
+ ],
+ "implementation_commits": [
+  {
+   "sha": "d01",
+   "date": "2026-01-02",
+   "subject": "Members can extend a booking",
+   "what": "ReservationService.extend with the overlap check and an audit entry; the extendReservation handler; a test"
+  }
+ ],
+ "undocumented_rules": [
+  {
+   "rule": "A cancelled booking cannot be extended",
+   "where_in_code": "src/reservations/service.js extend(): status check",
+   "evidence": "d01"
+  }
+ ],
+ "dropped_items": [],
+ "group": "001-extend-booking",
+ "request_en": "Let a member extend their own booking to a later end time.",
+ "id": "f1t1-extend-booking",
+ "stage": "task",
+ "area": "reservations",
+ "verdict_reason": "Synthetic self-test case: task T001 of feature 001; the spec, the plan and the task are its inputs.",
+ "inputs": [
+  {
+   "label": "Spec",
+   "original": "# Feature Specification: Extend a booking\n\n**Input**: User description: \"Let a member extend their own booking to a later end time.\"\n\n## What members need\n\nA member whose experiment runs over makes their booking longer instead of cancelling and booking again. The extension\nstarts from the booking's current end and may reach the start of the next booking of the same equipment, never beyond.\nAn admin may extend any booking. Every extension is part of the lab's safety log.",
+   "text": "# Feature Specification: Extend a booking\n\n**Input**: User description: \"Let a member extend their own booking to a later end time.\"\n\n## What members need\n\nA member whose experiment runs over makes their booking longer instead of cancelling and booking again. The extension\nstarts from the booking's current end and may reach the start of the next booking of the same equipment, never beyond.\nAn admin may extend any booking. Every extension is part of the lab's safety log."
+  },
+  {
+   "label": "Architecture",
+   "original": "# Plan: Extend a booking\n\n1. The reservation service gains an extend step that checks the longer slot against the other active bookings of the\n   same equipment and records the change.\n2. A new handler takes the booking and the new end time, checks who may extend it, and maps the service's results to\n   error codes.\n3. A test shows a booking extends up to the next one but not into it.",
+   "text": "# Plan: Extend a booking\n\n1. The reservation service gains an extend step that checks the longer slot against the other active bookings of the\n   same equipment and records the change.\n2. A new handler takes the booking and the new end time, checks who may extend it, and maps the service's results to\n   error codes.\n3. A test shows a booking extends up to the next one but not into it."
+  },
+  {
+   "label": "Task",
+   "original": "T001 Add the extend step to the reservation service in src/reservations/service.js",
+   "text": "T001 Add the extend step to the reservation service."
+  }
+ ],
+ "truth": {
+  "areas_modify": [
+   "reservations"
+  ],
+  "areas_reference": [
+   "audit"
+  ],
+  "docs_must_read": [
+   {
+    "doc": "docs/reservations.md",
+    "why": "the overlap rule and that every change goes through ReservationService"
+   },
+   {
+    "doc": "docs/api.md",
+    "why": "input parsing, error bodies and the permission check of a new handler"
+   },
+   {
+    "doc": "docs/audit.md",
+    "why": "a state change records an audit entry after it is stored"
+   }
+  ],
+  "files_edit": [
+   {
+    "path": "src/reservations/service.js",
+    "symbol": "ReservationService.extend"
+   },
+   {
+    "path": "tests/reservations.test.js",
+    "symbol": "a booking extends up to the next one"
+   }
+  ],
+  "files_read": [
+   {
+    "path": "src/reservations/reservation.js",
+    "why": "overlaps() and toMillis()"
+   },
+   {
+    "path": "src/api/schema.js",
+    "why": "parse()"
+   },
+   {
+    "path": "src/audit/audit.js",
+    "why": "audit.record()"
+   }
+  ]
+ },
+ "must_know_rules": [
+  {
+   "rule": "A slot is end-exclusive [start, end); slots overlap only when a.start < b.end and b.start < a.end",
+   "source": "docs/reservations.md:7",
+   "why": "the longer slot must be checked against the equipment's other bookings, and a booking may grow up to the next one's start",
+   "evidence": "tests/reservations.test.js in d01 extends to exactly the next start"
+  },
+  {
+   "rule": "Never compare times as local Date objects; compare UTC ISO strings with toMillis()",
+   "source": "docs/reservations.md:8",
+   "why": "the extension compares the new end with other slots",
+   "evidence": null
+  },
+  {
+   "rule": "Never change a stored reservation in place; every change goes through ReservationService, which checks overlaps",
+   "source": "docs/reservations.md:9",
+   "why": "the handler must not set the end itself",
+   "evidence": "d01 adds ReservationService.extend"
+  },
+  {
+   "rule": "Every state change calls audit.record after the change is stored, never before",
+   "source": "docs/audit.md:7",
+   "why": "an extension is a state change",
+   "evidence": "d01 records an extend entry"
+  }
+ ],
+ "correct_approach": "ReservationService.extend: check the new [start, end) against the other active bookings with overlaps(), set the end, then audit.record('extend').",
+ "wrong_approaches": [
+  {
+   "approach": "Compare new Date objects",
+   "breaks": "docs/reservations.md:8"
+  }
+ ],
+ "grading": {
+  "stage1": [
+   "src/reservations/service.js",
+   "docs/reservations.md:7"
+  ],
+  "stage2": []
+ },
+ "notes": "Self-test staged case (task stage)."
+}

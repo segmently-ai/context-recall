@@ -1,0 +1,101 @@
+{
+ "id": "d03-retired-equipment",
+ "verdict": "good",
+ "verdict_reason": "Synthetic self-test case: one implementation commit (tag d03); the obvious fix (drop retired items, or hide them for everyone) breaks a documented rule.",
+ "area": "equipment",
+ "snapshot": "d03-before",
+ "strip": [
+  "tasks/d03.md"
+ ],
+ "implementation_commits": [
+  {
+   "sha": "d03",
+   "date": "2026-01-06",
+   "subject": "Hide retired equipment from members; sort the list by name",
+   "what": "listEquipment filters retired items for members only and sorts by name; a test"
+  }
+ ],
+ "truth": {
+  "areas_modify": [
+   "api"
+  ],
+  "areas_reference": [
+   "equipment"
+  ],
+  "docs_must_read": [
+   {
+    "doc": "docs/equipment.md",
+    "why": "retired items stay in the registry; members do not see them, admins do; keys are slugs"
+   },
+   {
+    "doc": "docs/api.md",
+    "why": "the handler is where member and admin differ"
+   }
+  ],
+  "files_edit": [
+   {
+    "path": "src/api/handlers.js",
+    "symbol": "listEquipment"
+   },
+   {
+    "path": "tests/api.test.js",
+    "symbol": "members do not see retired equipment; admins do"
+   }
+  ],
+  "files_read": [
+   {
+    "path": "src/equipment/registry.js",
+    "why": "registry.all() and the retired flag"
+   }
+  ]
+ },
+ "must_know_rules": [
+  {
+   "rule": "Retired equipment stays in the registry with retired: true; lists for members hide it, lists for admins show it",
+   "source": "docs/equipment.md:8",
+   "why": "the request reads like 'remove the old items', which would also hide them from admins",
+   "evidence": "d03 filters for members only"
+  },
+  {
+   "rule": "Equipment is keyed by its slug; never key a map or a lookup by the display name",
+   "source": "docs/equipment.md:7",
+   "why": "sorting and grouping by name invite a map keyed by name",
+   "evidence": null
+  },
+  {
+   "rule": "Only the handler checks permissions: a member may change only their own reservations; an admin may change any",
+   "source": "docs/api.md:9",
+   "why": "the member and admin views differ in the handler, not in the registry",
+   "evidence": null
+  }
+ ],
+ "undocumented_rules": [],
+ "correct_approach": "In listEquipment, keep the items for admins and filter out retired ones for members, then sort by name; leave the registry unchanged. Add a test for both views.",
+ "wrong_approaches": [
+  {
+   "approach": "Delete retired items from the registry, or filter them in registry.all()",
+   "breaks": "docs/equipment.md:8"
+  },
+  {
+   "approach": "Hide retired items for admins too",
+   "breaks": "docs/equipment.md:8"
+  },
+  {
+   "approach": "Build a map keyed by the display name to sort or deduplicate",
+   "breaks": "docs/equipment.md:7"
+  }
+ ],
+ "grading": {
+  "stage1": [
+   "src/api/handlers.js",
+   "docs/equipment.md:8",
+   "docs/equipment.md:7"
+  ],
+  "stage2": [
+   "a plan that filters retired items in the registry is flagged against docs/equipment.md:8"
+  ]
+ },
+ "dropped_items": [],
+ "request_en": "Members see old equipment we no longer use in the booking list and try to book it. Also the list comes in a random order; show it alphabetically.",
+ "notes": "Self-test case. The snapshot and implementation are tags of the demo repository built by selftest/make_demo_repo.sh."
+}
