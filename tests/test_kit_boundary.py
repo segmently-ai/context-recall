@@ -28,6 +28,20 @@ class StandInMcp(unittest.TestCase):
         self.assertTrue(any(n.startswith("mcp__docsearch__") for n in names), names)
 
 
+class Marketplace(unittest.TestCase):
+    """The kit's repository is its own marketplace: `claude plugin marketplace add <repo>` finds the plugin at the root, and
+    the install line the README gives (<plugin>@<marketplace>) names both correctly."""
+
+    def test_marketplace_lists_the_plugin_at_the_root(self):
+        listed = dict((d, s) for s, d in export.manifest())
+        self.assertIn(".claude-plugin/marketplace.json", listed)
+        market = json.loads((STAND / listed[".claude-plugin/marketplace.json"]).read_text())
+        plugin = json.loads((STAND / ".claude-plugin" / "plugin.json").read_text())
+        self.assertEqual([(p["name"], p["source"]) for p in market["plugins"]], [(plugin["name"], "./")])
+        readme = (STAND / listed["README.md"]).read_text()
+        self.assertIn(f"claude plugin install {plugin['name']}@{market['name']}", readme)
+
+
 class ManifestExclusion(unittest.TestCase):
     """A manifest line "!<glob>" keeps matching files out of the kit even when an earlier glob lists them: a stand-local
     file next to the public ones never leaves the repository."""

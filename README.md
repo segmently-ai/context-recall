@@ -10,13 +10,46 @@ same prompt and the same brief template; a blinded judge then grades the brief r
 - `OWN_TASKS.md` — step by step: from an empty stand to numbers you can defend, on your repository.
 - `CASE_AUTHORING.md` — the prompt an agent follows to turn one past task into a case file.
 
+## Install with one prompt
+
+Paste this block into a fresh Claude Code session. It checks the tools the kit needs, installs the plugin from this
+repository and ends with one message of two steps for you: type `/reload-plugins` (an agent cannot reload its own plugins),
+then paste the request it gives you in the repository you want to measure.
+
+```text
+Set up the context-recall plugin for Claude Code on this machine, then stop and give me the two next steps.
+
+Marketplace: segmently-ai/context-recall (this GitHub repository is its own marketplace). Plugin: context-recall@context-recall.
+
+Run the steps in order and show me the exact output of every command:
+1. git --version, python3 --version, zsh --version and claude --version. git, zsh and Claude Code must answer, and Python must be 3.9 or newer. On macOS, if git or python3 asks for the command line developer tools, run xcode-select --install, ask me to finish the installer it opens, then run all four again. On Linux, if zsh is missing, tell me the package manager command that installs it on this system and stop there. If Python is still missing or older than 3.9, tell me how to get Python 3.9 or newer on this operating system and stop there.
+2. node --version and uv --version. These are optional: the kit's setup uses Node with npm for the Trail arm and uv for the Graphify and Serena arms, and runs without them with fewer arms. Only report which are present; install nothing.
+3. claude plugin marketplace add segmently-ai/context-recall --scope user
+   claude plugin install context-recall@context-recall --scope user
+   If the marketplace is already there, run claude plugin marketplace update context-recall and then claude plugin update context-recall@context-recall --scope user.
+4. claude plugin list — the output must name context-recall. If it does not, say so plainly and do not continue.
+5. Do not use the skill in this session yet. Claude Code picks a newly installed plugin up only after /reload-plugins, which only I can type, or in a new session. Do not try to reload or restart anything yourself, do not start another Claude Code process, and do not run the kit, its self-test or any session that costs money. End with one separate message to me that holds only the text below, word for word:
+
+Setup is done. Two steps for you:
+1. Type /reload-plugins in this chat (or start Claude Code in the repository you want to measure).
+2. Then, in that repository, paste this request:
+"Use the context-recall skill to measure how well code-context tools put the needed docs, files and rules in front of a coding agent in this repository. Start where the skill starts: check that the repository has a task history, then offer the free self-test. Ask me before anything that draws on my plan's limits, with a cost line."
+```
+
+The kit never commits, pushes or edits your code or docs. Its workspace lives in `<your repo>/.context-recall/` and is
+git-ignored: `git clean -fdx` deletes it, with every case and result.
+
 ## As a Claude Code plugin
 
 The kit is also a plugin: its `context-recall` skill leads you through the whole flow in your repository — the self-test, the
 configuration, picking past tasks from your history, tracing them into cases with subagents, preregistration, the runs
-(each after your yes and a cost line), the numbers per stage, and the calibration of your own docs. Load it with
-`claude --plugin-dir <path to the kit>` and ask to measure how well your context tools find what an agent needs. Its
-workspace lives in `<your repo>/.context-recall/` and is git-ignored.
+(each after your yes and a cost line), the numbers per stage, and the calibration of your own docs.
+
+- Install by hand: `claude plugin marketplace add segmently-ai/context-recall`, then
+  `claude plugin install context-recall@context-recall`, then `/reload-plugins` or a new session.
+- From a clone, without installing: `claude --plugin-dir <path to the clone>`.
+
+Then ask to measure how well your context tools find what an agent needs.
 
 ## Quick start
 

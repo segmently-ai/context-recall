@@ -1,6 +1,9 @@
 {
   "name": "context-recall",
   "version": "0.1.0",
+  "author": {
+    "name": "Leonid Yuriev"
+  },
   "license": "MIT",
   "description": "Measure and calibrate how well code-context tools put the needed docs, files and rules in front of a coding agent, stage by stage, on your repository's real past tasks."
 }

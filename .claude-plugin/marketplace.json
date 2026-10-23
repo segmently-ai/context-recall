@@ -1,0 +1,14 @@
+{
+  "name": "context-recall",
+  "owner": {
+    "name": "Leonid Yuriev"
+  },
+  "description": "context-recall: benchmark how well code-context tools put the needed docs, files and rules in front of a coding agent, on your repository's real past tasks",
+  "plugins": [
+    {
+      "name": "context-recall",
+      "source": "./",
+      "description": "Measure and calibrate how well code-context tools put the needed docs, files and rules in front of a coding agent, stage by stage, on your repository's real past tasks."
+    }
+  ]
+}
