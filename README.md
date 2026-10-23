@@ -18,6 +18,10 @@ blinded judge grades each brief rule by rule. It also tells you whether an edit 
 The study behind this kit: [Without Project Memory, Coding Agents Find a Third of the Rules](https://articles.segmently.ai/coding-agents-project-rules).
 It was run by the authors of Segmently Modules; that tool's arm is not part of this kit. Run it on your own tasks.
 
+Segmently Modules itself — the project memory that reached 70% in the study — is not part of this kit either. It is a
+separate open-source plugin: install it from https://github.com/segmently-ai/segmently-modules-plugins, and add it as an arm
+of your own ("Add a tool" below) to measure it next to the others.
+
 ## Install with one prompt
 
 Paste this block into a fresh Claude Code session. It checks the tools the kit needs, installs the plugin from this

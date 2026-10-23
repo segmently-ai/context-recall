@@ -51,6 +51,7 @@ class ReadmeOpening(unittest.TestCase):
         self.assertEqual(heads[:2], ["## What it does", "## Why it matters"])
         why = readme.split("## Why it matters", 1)[1].split("\n## ", 1)[0]
         self.assertIn("https://articles.segmently.ai/coding-agents-project-rules", why)
+        self.assertIn("https://github.com/segmently-ai/segmently-modules-plugins", why)   # where the studied tool lives
 
 
 class ManifestExclusion(unittest.TestCase):
